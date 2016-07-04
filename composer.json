@@ -4,7 +4,6 @@
   "type": "library",
   "license": "Proprietary",
   "require": {
-
   },
   "require-dev": {
     "codeception/codeception": "^2.2",
