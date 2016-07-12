@@ -87,13 +87,14 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
     }
 
     /**
-     * @param $offset
+     * @param string $offset
+     * @param string $splitter
+     *
      * @return string
      */
 
-    public function toSnakeCase($offset)
+    public function toSnakeCase($offset, $splitter = '_')
     {
-        $splitter = '_';
         $offset=preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '$0', preg_replace('/(?!^)[[:upper:]]+/', $splitter.'$0', $offset));
         return strtolower($offset);
     }
