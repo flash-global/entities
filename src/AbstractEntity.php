@@ -21,6 +21,19 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
     private $mappingTo = array();
 
     /**
+     * AbstractEntity constructor.
+     *
+     * @param null $data
+     */
+    public function __construct($data = null)
+    {
+        if($data)
+        {
+            $this->hydrate($data);
+        }
+    }
+
+    /**
      * @param mixed $offset
      * @return mixed
      */
