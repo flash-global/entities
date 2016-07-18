@@ -1,8 +1,8 @@
 <?php
-    
+
     namespace Fei\Entity;
-    
-    
+
+
     /**
      * Class AbstractEntity
      *
@@ -14,12 +14,12 @@
          * @var array DB => property mapping
          */
         protected $mapping = array();
-        
+
         /**
          * @var array property => DB mapping (auto-generated from $mapping)
          */
         private $mappingTo = array();
-        
+
         /**
          * AbstractEntity constructor.
          *
@@ -32,7 +32,7 @@
                 $this->hydrate($data);
             }
         }
-        
+
         /**
          * @param $data
          *
@@ -41,8 +41,6 @@
          */
         public function hydrate($data)
         {
-            
-            
             if ($data instanceof \ArrayObject)
             {
                 $data = $data->getArrayCopy();
@@ -54,25 +52,25 @@
                     $data = iterator_to_array($data);
                 }
             }
-            
+
             if (!is_array($data))
             {
                 throw new Exception(get_class($this) . ' entities must be hydrated using either an array, an ArrayObject or an Iterator');
             }
-            
+
             foreach ($data as $key => $value)
             {
                 $methodName = 'set' . $this->toCamelCase($this->mapFrom($key));
-                
+
                 if (method_exists($this, $methodName))
                 {
                     $this->$methodName($value);
                 }
             }
-            
+
             return $this;
         }
-        
+
         /**
          * @param bool $mapped
          *
@@ -81,24 +79,30 @@
         public function toArray($mapped = false)
         {
             $data = array();
-            
+
             $methods = get_class_methods(get_class($this));
-            
+
             foreach ($methods as $method)
             {
                 if (substr($method, 0, 3) == 'get')
                 {
                     $property = $this->toSnakeCase(lcfirst(substr($method, 3)));
-                    
+
                     if ($mapped) $property = $this->mapTo($property);
-                    
-                    $data[$property] = $this->$method();
+
+                    $value = $this->$method();
+
+                    if ($value instanceof \DateTime) {
+                        $value = $value->format('c');
+                    }
+
+                    $data[$property] = $value;
                 }
             }
-            
+
             return $data;
         }
-        
+
         /**
          * @param $offset
          *
@@ -111,10 +115,10 @@
             {
                 $offset = ucfirst($offset);
             });
-            
+
             return implode('', $parts);
         }
-        
+
         /**
          * Map DB field name to property name
          *
@@ -126,21 +130,21 @@
         {
             return isset($this->mapping[$field]) ? $this->mapping[$field] : $field;
         }
-        
+
         /**
          * @param string $offset
          * @param string $splitter
          *
          * @return string
          */
-        
+
         public function toSnakeCase($offset, $splitter = '_')
         {
             $offset = preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '$0', preg_replace('/(?!^)[[:upper:]]+/', $splitter . '$0', $offset));
-            
+
             return strtolower($offset);
         }
-        
+
         /**
          * Map property name to DB field name
          *
@@ -154,10 +158,10 @@
             {
                 $this->mappingTo = array_flip($this->mapping);
             }
-            
+
             return isset($this->mappingTo[$property]) ? $this->mappingTo[$property] : $property;
         }
-        
+
         /**
          * @param mixed $offset
          *
@@ -166,10 +170,10 @@
         public function offsetExists($offset)
         {
             $method = 'get' . $this->toCamelCase($offset);
-            
+
             return method_exists($this, $method);
         }
-        
+
         /**
          * @param mixed $offset
          *
@@ -182,10 +186,10 @@
             {
                 return $this->$method();
             }
-            
+
             return null;
         }
-        
+
         /**
          * @param mixed $offset
          * @param mixed $value
@@ -200,10 +204,10 @@
             {
                 return $this->$method($value);
             }
-            
+
             throw new Exception(sprintf('Undefined property %s', $offset));
         }
-        
+
         /**
          * @param mixed $offset
          *
@@ -212,9 +216,9 @@
         public function offsetUnset($offset)
         {
             $property = lcfirst($this->toCamelCase($offset));
-            
+
             $this->$property = null;
-            
+
         }
-        
+
     }
