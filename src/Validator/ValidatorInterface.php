@@ -4,6 +4,7 @@
     
     
     use Fei\Entity\AbstractEntity;
+    use Fei\Entity\EntityInterface;
 
     interface ValidatorInterface
     {
@@ -13,7 +14,7 @@
          *
          * @return bool
          */
-        public function validate(AbstractEntity $entity);
+        public function validate(EntityInterface $entity);
     
         /**
          * @return array
