@@ -2,8 +2,6 @@
 
 namespace Tests\Fei\Entity;
 
-
-use Codeception\Example;
 use Codeception\Test\Unit;
 use Fei\Entity\AbstractEntity;
 use Fei\Entity\Exception;
@@ -161,6 +159,19 @@ class AbstractEntityTest extends Unit
 
         $this->expectException(Exception::class);
         $entity->hydrate('this string is not iterable!');
+    }
+
+    public function testDateTimeToArray()
+    {
+        $entity = new TestEntity();
+
+        $date = new \DateTime();
+        $entity->setField($date);
+
+        $this->assertEquals(
+            ['field' => $date->format('c'), 'other_field' => null, 'mapped_field' => null],
+            $entity->toArray()
+        );
     }
 }
 
