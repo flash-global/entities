@@ -220,5 +220,5 @@
             $this->$property = null;
 
         }
-
+    
     }

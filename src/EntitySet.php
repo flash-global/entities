@@ -9,6 +9,7 @@ namespace Fei\Entity;
  */
 class EntitySet extends \ArrayObject implements EntitySetInterface
 {
+    
     /**
      * @return array
      */
@@ -18,7 +19,26 @@ class EntitySet extends \ArrayObject implements EntitySetInterface
 
         foreach($this as $entity)
         {
-            $set[] = $entity->toArray();
+            switch(true) {
+                
+                case $entity instanceof EntityInterface:
+                case is_object($entity) && method_exists($entity, 'toArray'):
+                    $set[] = $entity->toArray();
+                    break;
+                    
+                case $entity instanceof \ArrayObject:
+                    $set[] = $entity->getArrayCopy();
+                    break;
+    
+                case $entity instanceof \Iterator:
+                    $set[] = iterator_to_array($entity);
+                    break;
+                    
+                default:
+                    $set = $entity;
+                break;
+            }
+            
         }
 
         return $set;
