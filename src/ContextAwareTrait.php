@@ -27,6 +27,7 @@ trait ContextAwareTrait
             foreach($context as $key => $value)
             {
                 if (is_int($key)) {
+                    var_dump($context);exit;
                     throw new ContextException(sprintf('Context key must be a string, not an integer (key: "%s").', $key));
                 }
                 

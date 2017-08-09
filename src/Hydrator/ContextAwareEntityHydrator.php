@@ -3,6 +3,8 @@
 namespace Fei\Entities\Hydrator;
 
 use Fei\Entities\ContextAwareEntityInterface;
+use ObjectivePHP\Gateway\Entity\EntityInterface;
+use ObjectivePHP\Gateway\Hydrator\DenormalizedDataExtractorInterface;
 use Zend\Hydrator\ClassMethods;
 
 /**
@@ -11,7 +13,7 @@ use Zend\Hydrator\ClassMethods;
  * Date: 09/08/2017
  * Time: 10:02
  */
-class ContextAwareEntityHydrator extends ClassMethods
+class ContextAwareEntityHydrator extends ClassMethods implements DenormalizedDataExtractorInterface
 {
     public function __construct($underscoreSeparatedKeys = true)
     {
@@ -43,10 +45,23 @@ class ContextAwareEntityHydrator extends ClassMethods
     
     public function extractDenormalized($entity)
     {
-        return $this->denormalize($this->extract($entity));
+        $data = $this->extract($entity);
+        
+        if($entity instanceof EntityInterface)
+        {
+            // remove Entity specific fields
+            $fields = $entity->getEntityFields();
+            foreach($data as $key => $value)
+            {
+                if(!in_array($key, $fields)) unset($data[$key]);
+            }
+        }
+        
+        
+        return $this->denormalizeData($data);
     }
     
-    public function denormalize(array $data)
+    public function denormalizeData(array $data) : array
     {
         if (!isset($data['context'])) {
             return $data;
