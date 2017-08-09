@@ -4,14 +4,18 @@
   "type": "library",
   "license": "Proprietary",
   "require": {
+    "zendframework/zend-eventmanager": "^3.2",
+    "zendframework/zend-filter": "^2.7",
+    "zendframework/zend-servicemanager": "^3.3"
   },
   "require-dev": {
     "codeception/codeception": "^2.2",
+    "zendframework/zend-hydrator": "^2.2",
     "league/fractal": "^0.13.0"
   },
   "autoload": {
     "psr-4": {
-      "Fei\\Entity\\": "src/"
+      "Fei\\Entities\\": "src/"
     }
   }
 }
