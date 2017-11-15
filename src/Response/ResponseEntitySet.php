@@ -1,16 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Neofox
- * Date: 04/07/2016
- * Time: 14:18
- */
 
 namespace Response;
 
-
 use Fei\Entity\EntitySet;
 
+/**
+ * Class ResponseEntitySet
+ *
+ * @package Response
+ */
 class ResponseEntitySet extends EntitySet
 {
     /** @var  array */

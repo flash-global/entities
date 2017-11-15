@@ -1,35 +1,40 @@
 <?php
 
-    namespace Fei\Entity\Validator;
+namespace Fei\Entity\Validator;
 
-    use Fei\Entity\EntityInterface;
+use Fei\Entity\EntityInterface;
 
-    interface ValidatorInterface
-    {
+/**
+ * Interface ValidatorInterface
+ *
+ * @package Fei\Entity\Validator
+ */
+interface ValidatorInterface
+{
 
-        /**
-         * @param EntityInterface $entity
-         *
-         * @return bool
-         */
-        public function validate(EntityInterface $entity);
+    /**
+     * @param EntityInterface $entity
+     *
+     * @return bool
+     */
+    public function validate(EntityInterface $entity);
 
-        /**
-         * @return array
-         */
-        public function getErrors();
+    /**
+     * @return array
+     */
+    public function getErrors();
 
-        /**
-         * @return string
-         */
-        public function getErrorsAsString();
+    /**
+     * @return string
+     */
+    public function getErrorsAsString();
 
-        /**
-         * @param $attribute
-         * @param $message
-         *
-         * @return $this
-         */
-        public function addError($attribute, $message);
+    /**
+     * @param $attribute
+     * @param $message
+     *
+     * @return $this
+     */
+    public function addError($attribute, $message);
 
-    }
+}

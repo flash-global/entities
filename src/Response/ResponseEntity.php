@@ -1,16 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Neofox
- * Date: 04/07/2016
- * Time: 14:17
- */
 
 namespace Response;
 
-
 use Fei\Entity\AbstractEntity;
 
+/**
+ * Class ResponseEntity
+ *
+ * @package Response
+ */
 class ResponseEntity extends AbstractEntity
 {
     /** @var  array */

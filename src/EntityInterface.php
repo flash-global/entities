@@ -2,7 +2,11 @@
 
 namespace Fei\Entity;
 
-
+/**
+ * Interface EntityInterface
+ *
+ * @package Fei\Entity
+ */
 interface EntityInterface
 {
     /**

@@ -1,224 +1,224 @@
 <?php
 
-    namespace Fei\Entity;
+namespace Fei\Entity;
 
+
+/**
+ * Class AbstractEntity
+ *
+ * @package Fei\Entity
+ */
+abstract class AbstractEntity implements \ArrayAccess, EntityInterface
+{
+    /**
+     * @var array DB => property mapping
+     */
+    protected $mapping = array();
 
     /**
-     * Class AbstractEntity
-     *
-     * @package Fei\Entity
+     * @var array property => DB mapping (auto-generated from $mapping)
      */
-    abstract class AbstractEntity implements \ArrayAccess, EntityInterface
+    private $mappingTo = array();
+
+    /**
+     * AbstractEntity constructor.
+     *
+     * @param null $data
+     */
+    public function __construct($data = null)
     {
-        /**
-         * @var array DB => property mapping
-         */
-        protected $mapping = array();
-
-        /**
-         * @var array property => DB mapping (auto-generated from $mapping)
-         */
-        private $mappingTo = array();
-
-        /**
-         * AbstractEntity constructor.
-         *
-         * @param null $data
-         */
-        public function __construct($data = null)
+        if ($data)
         {
-            if ($data)
+            $this->hydrate($data);
+        }
+    }
+
+    /**
+     * @param $data
+     *
+     * @return $this
+     * @throws Exception
+     */
+    public function hydrate($data)
+    {
+        if ($data instanceof \ArrayObject)
+        {
+            $data = $data->getArrayCopy();
+        }
+        else
+        {
+            if ($data instanceof \Iterator)
             {
-                $this->hydrate($data);
+                $data = iterator_to_array($data);
             }
         }
 
-        /**
-         * @param $data
-         *
-         * @return $this
-         * @throws Exception
-         */
-        public function hydrate($data)
+        if (!is_array($data))
         {
-            if ($data instanceof \ArrayObject)
+            throw new Exception(get_class($this) . ' entities must be hydrated using either an array, an ArrayObject or an Iterator');
+        }
+
+        foreach ($data as $key => $value)
+        {
+            $methodName = 'set' . $this->toCamelCase($this->mapFrom($key));
+
+            if (method_exists($this, $methodName))
             {
-                $data = $data->getArrayCopy();
+                $this->$methodName($value);
             }
-            else
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param bool $mapped
+     *
+     * @return array
+     */
+    public function toArray($mapped = false)
+    {
+        $data = array();
+
+        $methods = get_class_methods(get_class($this));
+
+        foreach ($methods as $method)
+        {
+            if (substr($method, 0, 3) == 'get')
             {
-                if ($data instanceof \Iterator)
-                {
-                    $data = iterator_to_array($data);
+                $property = $this->toSnakeCase(lcfirst(substr($method, 3)));
+
+                if ($mapped) $property = $this->mapTo($property);
+
+                $value = $this->$method();
+
+                if ($value instanceof \DateTime) {
+                    $value = $value->format('c');
                 }
+
+                $data[$property] = $value;
             }
-
-            if (!is_array($data))
-            {
-                throw new Exception(get_class($this) . ' entities must be hydrated using either an array, an ArrayObject or an Iterator');
-            }
-
-            foreach ($data as $key => $value)
-            {
-                $methodName = 'set' . $this->toCamelCase($this->mapFrom($key));
-
-                if (method_exists($this, $methodName))
-                {
-                    $this->$methodName($value);
-                }
-            }
-
-            return $this;
         }
 
-        /**
-         * @param bool $mapped
-         *
-         * @return array
-         */
-        public function toArray($mapped = false)
+        return $data;
+    }
+
+    /**
+     * @param $offset
+     *
+     * @return string
+     */
+    public function toCamelCase($offset)
+    {
+        $parts = explode('_', $offset);
+        array_walk($parts, function (&$offset)
         {
-            $data = array();
+            $offset = ucfirst($offset);
+        });
 
-            $methods = get_class_methods(get_class($this));
+        return implode('', $parts);
+    }
 
-            foreach ($methods as $method)
-            {
-                if (substr($method, 0, 3) == 'get')
-                {
-                    $property = $this->toSnakeCase(lcfirst(substr($method, 3)));
+    /**
+     * Map DB field name to property name
+     *
+     * @param $field
+     *
+     * @return mixed
+     */
+    protected function mapFrom($field)
+    {
+        return isset($this->mapping[$field]) ? $this->mapping[$field] : $field;
+    }
 
-                    if ($mapped) $property = $this->mapTo($property);
+    /**
+     * @param string $offset
+     * @param string $splitter
+     *
+     * @return string
+     */
 
-                    $value = $this->$method();
+    public function toSnakeCase($offset, $splitter = '_')
+    {
+        $offset = preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '$0', preg_replace('/(?!^)[[:upper:]]+/', $splitter . '$0', $offset));
 
-                    if ($value instanceof \DateTime) {
-                        $value = $value->format('c');
-                    }
+        return strtolower($offset);
+    }
 
-                    $data[$property] = $value;
-                }
-            }
-
-            return $data;
-        }
-
-        /**
-         * @param $offset
-         *
-         * @return string
-         */
-        public function toCamelCase($offset)
+    /**
+     * Map property name to DB field name
+     *
+     * @param $property
+     *
+     * @return mixed
+     */
+    protected function mapTo($property)
+    {
+        if (!$this->mappingTo)
         {
-            $parts = explode('_', $offset);
-            array_walk($parts, function (&$offset)
-            {
-                $offset = ucfirst($offset);
-            });
-
-            return implode('', $parts);
+            $this->mappingTo = array_flip($this->mapping);
         }
 
-        /**
-         * Map DB field name to property name
-         *
-         * @param $field
-         *
-         * @return mixed
-         */
-        protected function mapFrom($field)
+        return isset($this->mappingTo[$property]) ? $this->mappingTo[$property] : $property;
+    }
+
+    /**
+     * @param mixed $offset
+     *
+     * @return mixed
+     */
+    public function offsetExists($offset)
+    {
+        $method = 'get' . $this->toCamelCase($offset);
+
+        return method_exists($this, $method);
+    }
+
+    /**
+     * @param mixed $offset
+     *
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        $method = 'get' . $this->toCamelCase($this->mapFrom($offset));
+        if (method_exists($this, $method))
         {
-            return isset($this->mapping[$field]) ? $this->mapping[$field] : $field;
+            return $this->$method();
         }
 
-        /**
-         * @param string $offset
-         * @param string $splitter
-         *
-         * @return string
-         */
+        return null;
+    }
 
-        public function toSnakeCase($offset, $splitter = '_')
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function offsetSet($offset, $value)
+    {
+        $method = 'set' . $this->toCamelCase($this->mapFrom($offset));
+        if (method_exists($this, $method))
         {
-            $offset = preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '$0', preg_replace('/(?!^)[[:upper:]]+/', $splitter . '$0', $offset));
-
-            return strtolower($offset);
+            return $this->$method($value);
         }
 
-        /**
-         * Map property name to DB field name
-         *
-         * @param $property
-         *
-         * @return mixed
-         */
-        protected function mapTo($property)
-        {
-            if (!$this->mappingTo)
-            {
-                $this->mappingTo = array_flip($this->mapping);
-            }
+        throw new Exception(sprintf('Undefined property %s', $offset));
+    }
 
-            return isset($this->mappingTo[$property]) ? $this->mappingTo[$property] : $property;
-        }
+    /**
+     * @param mixed $offset
+     *
+     * @return mixed
+     */
+    public function offsetUnset($offset)
+    {
+        $property = lcfirst($this->toCamelCase($offset));
 
-        /**
-         * @param mixed $offset
-         *
-         * @return mixed
-         */
-        public function offsetExists($offset)
-        {
-            $method = 'get' . $this->toCamelCase($offset);
-
-            return method_exists($this, $method);
-        }
-
-        /**
-         * @param mixed $offset
-         *
-         * @return mixed
-         */
-        public function offsetGet($offset)
-        {
-            $method = 'get' . $this->toCamelCase($this->mapFrom($offset));
-            if (method_exists($this, $method))
-            {
-                return $this->$method();
-            }
-
-            return null;
-        }
-
-        /**
-         * @param mixed $offset
-         * @param mixed $value
-         *
-         * @return mixed
-         * @throws Exception
-         */
-        public function offsetSet($offset, $value)
-        {
-            $method = 'set' . $this->toCamelCase($this->mapFrom($offset));
-            if (method_exists($this, $method))
-            {
-                return $this->$method($value);
-            }
-
-            throw new Exception(sprintf('Undefined property %s', $offset));
-        }
-
-        /**
-         * @param mixed $offset
-         *
-         * @return mixed
-         */
-        public function offsetUnset($offset)
-        {
-            $property = lcfirst($this->toCamelCase($offset));
-
-            $this->$property = null;
-
-        }
+        $this->$property = null;
 
     }
+
+}

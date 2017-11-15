@@ -1,16 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Neofox
- * Date: 04/07/2016
- * Time: 14:18
- */
 
 namespace Response;
 
-
 use Fei\Entity\PaginatedEntitySet;
 
+/**
+ * Class ResponsePaginatedEntitySet
+ *
+ * @package Response
+ */
 class ResponsePaginatedEntitySet extends PaginatedEntitySet
 {
     /** @var  array */
@@ -58,5 +56,4 @@ class ResponsePaginatedEntitySet extends PaginatedEntitySet
 
         return $this;
     }
-    
 }

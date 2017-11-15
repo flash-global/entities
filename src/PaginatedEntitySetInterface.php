@@ -1,27 +1,27 @@
 <?php
-    
-    namespace Fei\Entity;
 
+namespace Fei\Entity;
+
+
+/**
+ * Interface PaginatedEntitySetInterface
+ *
+ * @package Fei\Entity
+ */
+interface PaginatedEntitySetInterface
+{
+    /**
+     * @return int
+     */
+    public function getCurrentPage();
 
     /**
-     * Interface PaginatedEntitySetInterface
-     *
-     * @package Fei\Entity
+     * @return int
      */
-    interface PaginatedEntitySetInterface
-    {
-        /**
-         * @return int
-         */
-        public function getCurrentPage();
+    public function getTotal();
 
-        /**
-         * @return int
-         */
-        public function getTotal();
-
-        /**
-         * @return int
-         */
-        public function getPerPage();
-    }
+    /**
+     * @return int
+     */
+    public function getPerPage();
+}
