@@ -2,7 +2,14 @@
   "name": "fei/entities",
   "description": "Entities descriptors and helpers",
   "type": "library",
-  "license": "Proprietary",
+  "license": "GPL-3.0",
+  "authors": [
+    {
+      "name": "Yoctu",
+      "email": "contact@yoctu.com",
+      "homepage": "http://yoctu.com/"
+    }
+  ],
   "require": {
   },
   "require-dev": {
