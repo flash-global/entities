@@ -2,7 +2,6 @@
 
 namespace Fei\Entity;
 
-
 /**
  * Class EntitySet
  * @package Pricer\Entity
@@ -89,5 +88,4 @@ class PaginatedEntitySet extends EntitySet implements PaginatedEntitySetInterfac
 
         return $this;
     }
-
 }

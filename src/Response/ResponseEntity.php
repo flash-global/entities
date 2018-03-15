@@ -33,5 +33,4 @@ class ResponseEntity extends AbstractEntity
 
         return $this;
     }
-
 }

@@ -33,5 +33,4 @@ class ResponseEntitySet extends EntitySet
 
         return $this;
     }
-    
 }

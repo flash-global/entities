@@ -51,8 +51,7 @@ abstract class AbstractValidator implements ValidatorInterface
     public function getErrorsAsString()
     {
         $errors = array();
-        foreach ($this->getErrors() as $attribute => $attrErrors)
-        {
+        foreach ($this->getErrors() as $attribute => $attrErrors) {
             $errors[] = $attribute . ': ' . implode(', ', $attrErrors);
         }
 

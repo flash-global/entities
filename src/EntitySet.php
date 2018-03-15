@@ -2,7 +2,6 @@
 
 namespace Fei\Entity;
 
-
 /**
  * Class EntitySet
  * @package Pricer\Entity
@@ -16,8 +15,7 @@ class EntitySet extends \ArrayObject implements EntitySetInterface
     {
         $set = array();
 
-        foreach($this as $entity)
-        {
+        foreach ($this as $entity) {
             $set[] = $entity->toArray();
         }
 
@@ -28,5 +26,4 @@ class EntitySet extends \ArrayObject implements EntitySetInterface
     {
         return !(bool) count($this);
     }
-
 }

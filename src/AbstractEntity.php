@@ -2,7 +2,6 @@
 
 namespace Fei\Entity;
 
-
 /**
  * Class AbstractEntity
  *
@@ -27,8 +26,7 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
      */
     public function __construct($data = null)
     {
-        if ($data)
-        {
+        if ($data) {
             $this->hydrate($data);
         }
     }
@@ -41,29 +39,22 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
      */
     public function hydrate($data)
     {
-        if ($data instanceof \ArrayObject)
-        {
+        if ($data instanceof \ArrayObject) {
             $data = $data->getArrayCopy();
-        }
-        else
-        {
-            if ($data instanceof \Iterator)
-            {
+        } else {
+            if ($data instanceof \Iterator) {
                 $data = iterator_to_array($data);
             }
         }
 
-        if (!is_array($data))
-        {
+        if (!is_array($data)) {
             throw new Exception(get_class($this) . ' entities must be hydrated using either an array, an ArrayObject or an Iterator');
         }
 
-        foreach ($data as $key => $value)
-        {
+        foreach ($data as $key => $value) {
             $methodName = 'set' . $this->toCamelCase($this->mapFrom($key));
 
-            if (method_exists($this, $methodName))
-            {
+            if (method_exists($this, $methodName)) {
                 $this->$methodName($value);
             }
         }
@@ -82,13 +73,13 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
 
         $methods = get_class_methods(get_class($this));
 
-        foreach ($methods as $method)
-        {
-            if (substr($method, 0, 3) == 'get')
-            {
+        foreach ($methods as $method) {
+            if (substr($method, 0, 3) == 'get') {
                 $property = $this->toSnakeCase(lcfirst(substr($method, 3)));
 
-                if ($mapped) $property = $this->mapTo($property);
+                if ($mapped) {
+                    $property = $this->mapTo($property);
+                }
 
                 $value = $this->$method();
 
@@ -111,8 +102,7 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
     public function toCamelCase($offset)
     {
         $parts = explode('_', $offset);
-        array_walk($parts, function (&$offset)
-        {
+        array_walk($parts, function (&$offset) {
             $offset = ucfirst($offset);
         });
 
@@ -154,8 +144,7 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
      */
     protected function mapTo($property)
     {
-        if (!$this->mappingTo)
-        {
+        if (!$this->mappingTo) {
             $this->mappingTo = array_flip($this->mapping);
         }
 
@@ -182,8 +171,7 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
     public function offsetGet($offset)
     {
         $method = 'get' . $this->toCamelCase($this->mapFrom($offset));
-        if (method_exists($this, $method))
-        {
+        if (method_exists($this, $method)) {
             return $this->$method();
         }
 
@@ -200,8 +188,7 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
     public function offsetSet($offset, $value)
     {
         $method = 'set' . $this->toCamelCase($this->mapFrom($offset));
-        if (method_exists($this, $method))
-        {
+        if (method_exists($this, $method)) {
             return $this->$method($value);
         }
 
@@ -218,7 +205,5 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
         $property = lcfirst($this->toCamelCase($offset));
 
         $this->$property = null;
-
     }
-
 }

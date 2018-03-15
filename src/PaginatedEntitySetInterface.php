@@ -2,7 +2,6 @@
 
 namespace Fei\Entity;
 
-
 /**
  * Interface PaginatedEntitySetInterface
  *

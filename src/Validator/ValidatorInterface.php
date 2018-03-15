@@ -36,5 +36,4 @@ interface ValidatorInterface
      * @return $this
      */
     public function addError($attribute, $message);
-
 }
