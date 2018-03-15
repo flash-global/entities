@@ -158,7 +158,7 @@ class JsonApiExtractor
     protected function scanIncluded($included, $type, $id)
     {
         foreach ($included as $data) {
-            if ($this->dataHasType($data) && $this->dataId($data)) {
+            if ($this->dataHasType($data) && strlen(trim($this->dataId($data))) > 0 ) {
                 if ($this->dataType($data) == $type && $this->dataId($data) == $id) {
                     return $data;
                 }
