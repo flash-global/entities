@@ -25,52 +25,30 @@ class JsonApiExtractor
         if (!$this->hasData($json)) {
             return null;
         }
-
         if (!$this->isCollection($json)) {
             return $this->extractOne($json, $json['data']);
         } else {
             $data = $this->extractMultiple($json);
-
             if ($this->isPaginated($json)) {
                 return (new PaginatedEntitySet($data))
                     ->setPerPage($json['meta']['pagination']['per_page'])
                     ->setCurrentPage($json['meta']['pagination']['current_page'])
                     ->setTotal($json['meta']['pagination']['total']);
             }
-
             return new EntitySet($data);
         }
     }
 
     /**
-     * Test if JSON API data provided is paginated
+     * Test if JSON API data exists
      *
      * @param array $json
      *
      * @return bool
      */
-    protected function isPaginated(array $json)
+    protected function hasData(array $json)
     {
-        if (!array_key_exists('links', $json) || !array_key_exists('meta', $json)) {
-            return false;
-        }
-
-        if (is_array($json['links'])
-            && array_key_exists('self', $json['links'])
-            && array_key_exists('first', $json['links'])
-            && array_key_exists('last', $json['links'])
-            && isset($json['meta']['pagination'])
-            && is_array($json['meta']['pagination'])
-            && array_key_exists('total', $json['meta']['pagination'])
-            && array_key_exists('count', $json['meta']['pagination'])
-            && array_key_exists('per_page', $json['meta']['pagination'])
-            && array_key_exists('current_page', $json['meta']['pagination'])
-            && array_key_exists('total_pages', $json['meta']['pagination'])
-        ) {
-            return true;
-        }
-
-        return false;
+        return isset($json['data']) && !empty($json['data']);
     }
 
     /**
@@ -86,15 +64,20 @@ class JsonApiExtractor
     }
 
     /**
-     * Test if JSON API data exists
+     * Extract an entity from data
      *
      * @param array $json
+     * @param array $data
      *
-     * @return bool
+     * @return array|EntityInterface
+     * @throws JsonApiExtractException
      */
-    protected function hasData(array $json)
+    protected function extractOne(array $json, array $data)
     {
-        return isset($json['data']) && !empty($json['data']);
+        if ($this->dataHasType($data)) {
+            return $this->createInstanceWithRelations($json, $data);
+        }
+        throw new JsonApiExtractException('No data type provided');
     }
 
     protected function dataHasType(array $data)
@@ -102,19 +85,26 @@ class JsonApiExtractor
         return isset($data['type']) && !empty($data['type']);
     }
 
-    protected function dataType(array $data)
+    /**
+     * @param $json
+     * @param $data
+     * @return mixed|null
+     */
+    protected function createInstanceWithRelations($json, $data)
     {
-        return $this->dataHasType($data) ? $data['type'] : null;
-    }
-
-    protected function dataId(array $data)
-    {
-        return isset($data['id']) ? $data['id'] : null;
-    }
-
-    protected function dataAttributes(array $data)
-    {
-        return isset($data['attributes']) ? $data['attributes'] : null;
+        if ($this->dataHasRelationships($data)) {
+            foreach ($this->dataRelationships($data) as $attribute => $relationship) {
+                $relation = $this->findDataRelationship($json, $relationship['data']);
+                if ($this->isCollection(['data' => $relation])) {
+                    foreach ($relation as $item) {
+                        $data['attributes'][$attribute][] = $this->createInstanceWithRelations($json, $item);
+                    }
+                } else {
+                    $data['attributes'][$attribute] = $this->createInstanceWithRelations($json, $relation);
+                }
+            }
+        }
+        return $this->createInstance($data);
     }
 
     protected function dataHasRelationships(array $data)
@@ -127,19 +117,12 @@ class JsonApiExtractor
         return $this->dataHasRelationships($data) ? $data['relationships'] : null;
     }
 
-    protected function included(array $json)
-    {
-        return isset($json['included']) ? $json['included'] : null;
-    }
-
     protected function findDataRelationship($json, $relation)
     {
         $included = $this->included($json);
-
         if (empty($included)) {
             return null;
         }
-
         if ($this->isCollection(['data' => $relation])) {
             $relations = [];
             foreach ($relation as $item) {
@@ -148,11 +131,14 @@ class JsonApiExtractor
                     $relations[] = $result;
                 }
             }
-
             return $relations;
         }
-
         return $this->scanIncluded($included, $this->dataType($relation), $this->dataId($relation));
+    }
+
+    protected function included(array $json)
+    {
+        return isset($json['included']) ? $json['included'] : null;
     }
 
     protected function scanIncluded($included, $type, $id)
@@ -164,8 +150,17 @@ class JsonApiExtractor
                 }
             }
         }
-
         return null;
+    }
+
+    protected function dataId(array $data)
+    {
+        return isset($data['id']) ? $data['id'] : null;
+    }
+
+    protected function dataType(array $data)
+    {
+        return $this->dataHasType($data) ? $data['type'] : null;
     }
 
     protected function createInstance($data)
@@ -173,49 +168,19 @@ class JsonApiExtractor
         if ($data) {
             $id = $this->dataId($data);
             $type = $this->dataType($data);
-
             $data = $this->dataAttributes($data);
             $data['id'] = $id;
-
             if (class_exists($type)) {
                 return new $type($data);
             }
-
             return $data;
         }
-
         return null;
     }
 
-    /**
-     * Extract an entity from data
-     *
-     * @param array $json
-     * @param array $data
-     *
-     * @return array|EntityInterface
-     * @throws JsonApiExtractException
-     */
-    protected function extractOne(array $json, array $data)
+    protected function dataAttributes(array $data)
     {
-        if ($this->dataHasType($data)) {
-            if ($this->dataHasRelationships($data)) {
-                foreach ($this->dataRelationships($data) as $attribute => $relationship) {
-                    $relation = $this->findDataRelationship($json, $relationship['data']);
-                    if ($this->isCollection(['data' => $relation])) {
-                        foreach ($relation as $item) {
-                            $data['attributes'][$attribute][] = $this->createInstance($item);
-                        }
-                    } else {
-                        $data['attributes'][$attribute] = $this->createInstance($relation);
-                    }
-                }
-            }
-
-            return $this->createInstance($data);
-        }
-
-        throw new JsonApiExtractException('No data type provided');
+        return isset($data['attributes']) ? $data['attributes'] : null;
     }
 
     protected function extractMultiple(array $json)
@@ -224,7 +189,35 @@ class JsonApiExtractor
         foreach ($json['data'] as $entry) {
             $return[] = $this->extractOne($json, $entry);
         }
-
         return $return;
+    }
+
+    /**
+     * Test if JSON API data provided is paginated
+     *
+     * @param array $json
+     *
+     * @return bool
+     */
+    protected function isPaginated(array $json)
+    {
+        if (!array_key_exists('links', $json) || !array_key_exists('meta', $json)) {
+            return false;
+        }
+        if (is_array($json['links'])
+            && array_key_exists('self', $json['links'])
+            && array_key_exists('first', $json['links'])
+            && array_key_exists('last', $json['links'])
+            && isset($json['meta']['pagination'])
+            && is_array($json['meta']['pagination'])
+            && array_key_exists('total', $json['meta']['pagination'])
+            && array_key_exists('count', $json['meta']['pagination'])
+            && array_key_exists('per_page', $json['meta']['pagination'])
+            && array_key_exists('current_page', $json['meta']['pagination'])
+            && array_key_exists('total_pages', $json['meta']['pagination'])
+        ) {
+            return true;
+        }
+        return false;
     }
 }
