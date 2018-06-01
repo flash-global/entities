@@ -92,7 +92,7 @@ class JsonApiExtractor
      */
     protected function createInstanceWithRelations($json, $data)
     {
-        if ($this->dataHasRelationships($data)) {
+        if (!is_null($data) && $this->dataHasRelationships($data)) {
             foreach ($this->dataRelationships($data) as $attribute => $relationship) {
                 $relation = $this->findDataRelationship($json, $relationship['data']);
                 if ($this->isCollection(['data' => $relation])) {
