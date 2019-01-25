@@ -97,7 +97,6 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
             }
 
             $data[$property] = $value;
-
         }
 
         return $data;
