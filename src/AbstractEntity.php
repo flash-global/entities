@@ -74,31 +74,30 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
         $methods = get_class_methods(get_class($this));
 
         foreach ($methods as $method) {
-            foreach ($methods as $method) {
-                $property = null;
+            $property = null;
 
-                if (substr($method, 0, 3) == 'get') {
-                    $property = $this->toSnakeCase(lcfirst(substr($method, 3)));
-                } elseif (substr($method, 0, 2) == 'is') {
-                    $property = $this->toSnakeCase(lcfirst(substr($method, 2)));
-                }
-
-                if (null === $property) {
-                    continue;
-                }
-
-                if ($mapped) {
-                    $property = $this->mapTo($property);
-                }
-
-                $value = $this->$method();
-
-                if ($value instanceof \DateTime) {
-                    $value = $value->format('c');
-                }
-
-                $data[$property] = $value;
+            if (substr($method, 0, 3) == 'get') {
+                $property = $this->toSnakeCase(lcfirst(substr($method, 3)));
+            } elseif (substr($method, 0, 2) == 'is') {
+                $property = $this->toSnakeCase(lcfirst(substr($method, 2)));
             }
+
+            if (null === $property) {
+                continue;
+            }
+
+            if ($mapped) {
+                $property = $this->mapTo($property);
+            }
+
+            $value = $this->$method();
+
+            if ($value instanceof \DateTime) {
+                $value = $value->format('c');
+            }
+
+            $data[$property] = $value;
+
         }
 
         return $data;
