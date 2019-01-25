@@ -74,8 +74,18 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
         $methods = get_class_methods(get_class($this));
 
         foreach ($methods as $method) {
-            if (substr($method, 0, 3) == 'get') {
-                $property = $this->toSnakeCase(lcfirst(substr($method, 3)));
+            foreach ($methods as $method) {
+                $property = null;
+
+                if (substr($method, 0, 3) == 'get') {
+                    $property = $this->toSnakeCase(lcfirst(substr($method, 3)));
+                } elseif (substr($method, 0, 2) == 'is') {
+                    $property = $this->toSnakeCase(lcfirst(substr($method, 2)));
+                }
+
+                if (null === $property) {
+                    continue;
+                }
 
                 if ($mapped) {
                     $property = $this->mapTo($property);
