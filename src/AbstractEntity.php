@@ -124,7 +124,7 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
      *
      * @return mixed
      */
-    protected function mapFrom($field)
+    public function mapFrom($field)
     {
         return isset($this->mapping[$field]) ? $this->mapping[$field] : $field;
     }
@@ -150,7 +150,7 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
      *
      * @return mixed
      */
-    protected function mapTo($property)
+    public function mapTo($property)
     {
         if (!$this->mappingTo) {
             $this->mappingTo = array_flip($this->mapping);
