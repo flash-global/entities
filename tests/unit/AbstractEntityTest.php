@@ -110,7 +110,7 @@ class AbstractEntityTest extends Unit
     public function testEntityHydrationAndConversionToArray()
     {
         $entity = new TestEntity();
-        $data = ['legacy_name' => 'x', 'field' => 'y', 'other_field' => 'z'];
+        $data = ['legacy_name' => 'x', 'field' => 'y', 'other_field' => 'z', 'legacy_boolean' => false];
         $entity->hydrate($data);
 
         $this->assertEquals('x', $entity['legacy_name']);
@@ -118,6 +118,7 @@ class AbstractEntityTest extends Unit
         $this->assertEquals('x', $entity['mappedField']);
         $this->assertEquals('y', $entity['field']);
         $this->assertEquals('z', $entity['other_field']);
+        $this->assertEquals(false, $entity['legacy_boolean']);
 
         // output mapped array
         $this->assertEquals($data, $entity->toArray(true));
@@ -125,7 +126,9 @@ class AbstractEntityTest extends Unit
         // output unmapped array
         $unmappedExpectedData = $data;
         $unmappedExpectedData['mapped_field'] = $data['legacy_name'];
+        $unmappedExpectedData['boolean_field'] = $data['legacy_boolean'];
         unset($unmappedExpectedData['legacy_name']);
+        unset($unmappedExpectedData['legacy_boolean']);
         $this->assertEquals($unmappedExpectedData, $entity->toArray());
     }
 
@@ -135,7 +138,9 @@ class AbstractEntityTest extends Unit
     public function testHydrationFromArrayObject()
     {
         $entity = new TestEntity();
-        $data = new \ArrayObject(['legacy_name' => 'x', 'field' => 'y', 'other_field' => 'z']);
+        $data = new \ArrayObject(
+            ['legacy_name' => 'x', 'field' => 'y', 'other_field' => 'z', 'legacy_boolean' => true]
+        );
         $entity->hydrate($data);
         $this->assertEquals($data->getArrayCopy(), $entity->toArray(true));
 
@@ -147,7 +152,9 @@ class AbstractEntityTest extends Unit
     public function testHydrationFromIterator()
     {
         $entity = new TestEntity();
-        $data = new \ArrayIterator(['legacy_name' => 'x', 'field' => 'y', 'other_field' => 'z']);
+        $data = new \ArrayIterator(
+            ['legacy_name' => 'x', 'field' => 'y', 'other_field' => 'z', 'legacy_boolean' => false]
+        );
         $entity->hydrate($data);
         $this->assertEquals(iterator_to_array($data), $entity->toArray(true));
 
@@ -169,7 +176,12 @@ class AbstractEntityTest extends Unit
         $entity->setField($date);
 
         $this->assertEquals(
-            ['field' => $date->format('c'), 'other_field' => null, 'mapped_field' => null],
+            [
+                'field' => $date->format('c'),
+                'other_field' => null,
+                'mapped_field' => null,
+                'boolean_field' => null
+            ],
             $entity->toArray()
         );
     }
@@ -182,9 +194,11 @@ class TestEntity extends AbstractEntity
     protected $field;
     protected $otherField;
     protected $mappedField;
+    protected $booleanField;
 
     protected $mapping = [
-      'legacy_name' => 'mapped_field'
+        'legacy_name' => 'mapped_field',
+        'legacy_boolean' => 'boolean_field',
     ];
 
     /**
@@ -219,7 +233,6 @@ class TestEntity extends AbstractEntity
         $this->otherField = $otherField;
     }
 
-
     /**
      * @return mixed
      */
@@ -236,4 +249,19 @@ class TestEntity extends AbstractEntity
         $this->mappedField = $mappedField;
     }
 
+    /**
+     * @return mixed
+     */
+    public function isBooleanField()
+    {
+        return $this->booleanField;
+    }
+
+    /**
+     * @param mixed $booleanField
+     */
+    public function setBooleanField($booleanField)
+    {
+        $this->booleanField = $booleanField;
+    }
 }
