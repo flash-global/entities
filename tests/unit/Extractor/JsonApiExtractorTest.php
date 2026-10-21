@@ -24,7 +24,7 @@ class JsonApiExtractorTest extends TestCase
      * @param mixed           $expected
      * @param \Exception|null $triggerException
      */
-    public function testExtract($input, $expected, \Exception $triggerException = null)
+    public function testExtract($input, $expected, ?\Exception $triggerException = null)
     {
 
         if ($triggerException) {
