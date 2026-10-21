@@ -25,5 +25,10 @@
     "psr-4": {
       "Fei\\Entity\\": "src/"
     }
+  },
+  "config": {
+    "allow-plugins": {
+      "phpro/grumphp": true
+    }
   }
 }
