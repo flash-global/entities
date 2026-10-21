@@ -14,7 +14,6 @@
 
             $set->setCurrentPage(3);
 
-            $this->assertAttributeEquals(3, 'currentPage', $set);
             $this->assertEquals(3, $set->getCurrentPage());
         }
     
@@ -24,7 +23,6 @@
         
             $set->setPerPage(10);
         
-            $this->assertAttributeEquals(10, 'perPage', $set);
             $this->assertEquals(10, $set->getPerPage());
         }
     
@@ -34,7 +32,6 @@
         
             $set->setTotal(38);
         
-            $this->assertAttributeEquals(38, 'total', $set);
             $this->assertEquals(38, $set->getTotal());
         }
     }

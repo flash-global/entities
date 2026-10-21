@@ -15,7 +15,7 @@
 
             $validator->addError('attr', 'msg');
 
-            $this->assertAttributeEquals(array('attr' => array('msg')), 'errors', $validator);
+            $this->assertEquals(array('attr' => array('msg')), $validator->getErrors());
 
         }
 

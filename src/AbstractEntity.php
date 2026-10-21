@@ -162,9 +162,9 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
     /**
      * @param mixed $offset
      *
-     * @return mixed
+     * @return bool
      */
-    public function offsetExists($offset)
+    public function offsetExists(mixed $offset): bool
     {
         $method = 'get' . $this->toCamelCase($offset);
 
@@ -176,7 +176,7 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
      *
      * @return mixed
      */
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         $method = 'get' . $this->toCamelCase($this->mapFrom($offset));
         if (method_exists($this, $method)) {
@@ -190,14 +190,15 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
      * @param mixed $offset
      * @param mixed $value
      *
-     * @return mixed
      * @throws Exception
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         $method = 'set' . $this->toCamelCase($this->mapFrom($offset));
         if (method_exists($this, $method)) {
-            return $this->$method($value);
+            $this->$method($value);
+
+            return;
         }
 
         throw new Exception(sprintf('Undefined property %s', $offset));
@@ -205,13 +206,13 @@ abstract class AbstractEntity implements \ArrayAccess, EntityInterface
 
     /**
      * @param mixed $offset
-     *
-     * @return mixed
      */
-    public function offsetUnset($offset)
+    public function offsetUnset(mixed $offset): void
     {
         $property = lcfirst($this->toCamelCase($offset));
 
-        $this->$property = null;
+        if (property_exists($this, $property)) {
+            $this->$property = null;
+        }
     }
 }
